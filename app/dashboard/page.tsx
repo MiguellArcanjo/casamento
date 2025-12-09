@@ -2,6 +2,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Layout from '@/components/Layout'
+import CountdownTimer from '@/components/CountdownTimer'
 import { differenceInDays, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Calendar, CheckCircle, DollarSign, Users, AlertCircle, TrendingUp, LucideIcon } from 'lucide-react'
@@ -86,27 +87,21 @@ export default async function DashboardPage() {
     <Layout>
       <div className="space-y-6">
         {/* Banner com Data do Casamento */}
-        <div className="bg-gradient-to-r from-wedding-500 to-rose-500 text-white rounded-2xl p-6 shadow-lg">
+        <div className="bg-gradient-to-r from-wedding-500 to-rose-500 text-white rounded-2xl p-6 md:p-8 shadow-lg">
           <div className="text-center">
-            <h1 className="text-3xl font-serif font-bold mb-2">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold mb-3">
               {wedding.coupleName}
             </h1>
-            <div className="flex items-center justify-center space-x-2 text-lg">
+            <div className="flex items-center justify-center space-x-2 text-lg md:text-xl mb-6">
               <Calendar size={20} />
               <span>{weddingDateFormatted}</span>
             </div>
-            {daysUntilWedding > 0 && (
-              <div className="mt-4 text-2xl font-bold">
-                Faltam {daysUntilWedding} {daysUntilWedding === 1 ? 'dia' : 'dias'}!
+            {daysUntilWedding >= 0 ? (
+              <div className="mt-6">
+                <CountdownTimer targetDate={new Date(wedding.weddingDate)} />
               </div>
-            )}
-            {daysUntilWedding === 0 && (
-              <div className="mt-4 text-2xl font-bold">
-                É hoje! 🎉
-              </div>
-            )}
-            {daysUntilWedding < 0 && (
-              <div className="mt-4 text-2xl font-bold">
+            ) : (
+              <div className="mt-4 text-2xl md:text-3xl font-bold animate-pulse">
                 Casados há {Math.abs(daysUntilWedding)} {Math.abs(daysUntilWedding) === 1 ? 'dia' : 'dias'}! 💕
               </div>
             )}
