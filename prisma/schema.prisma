@@ -1,0 +1,249 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(NOIVO)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  wedding Wedding?
+}
+
+enum UserRole {
+  NOIVO
+  NOIVA
+  VISUALIZADOR
+}
+
+model Wedding {
+  id              String   @id @default(cuid())
+  coupleName      String
+  weddingDate     DateTime
+  city            String
+  state           String
+  ceremonyType    String
+  currency        String   @default("R$")
+  financialGoal   Float
+  theme           String   @default("light")
+  
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  locations       Location[]
+  suppliers       Supplier[]
+  tasks           Task[]
+  expenses        Expense[]
+  deposits        Deposit[]
+  guests          Guest[]
+  registryItems   RegistryItem[]
+  documents       Document[]
+  notes           Note[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  name        String
+  type        LocationType
+  address     String
+  time        String
+  mapsLink    String?
+  
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum LocationType {
+  CERIMONIA
+  RECEPCAO
+}
+
+model Supplier {
+  id            String         @id @default(cuid())
+  type          String
+  name          String
+  contactName   String?
+  phone         String?
+  email         String?
+  agreedValue   Float
+  paymentStatus PaymentStatus @default(A_PAGAR)
+  notes         String?
+  
+  weddingId     String
+  wedding       Wedding        @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+enum PaymentStatus {
+  A_PAGAR
+  PAGO_PARCIALMENTE
+  PAGO
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  description String
+  deadline    DateTime
+  stage       TaskStage
+  responsible TaskResponsible
+  priority    Priority   @default(MEDIA)
+  completed   Boolean    @default(false)
+  
+  weddingId   String
+  wedding     Wedding    @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum TaskStage {
+  MESES_12_9
+  MESES_9_6
+  MESES_6_3
+  MESES_3_1
+  SEMANA_CASAMENTO
+  DIA_CASAMENTO
+}
+
+enum TaskResponsible {
+  NOIVO
+  NOIVA
+  AMBOS
+}
+
+enum Priority {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+model Expense {
+  id            String         @id @default(cuid())
+  name          String
+  category      String
+  estimatedValue Float
+  actualValue   Float?
+  paidBy        TaskResponsible
+  paymentStatus PaymentStatus  @default(A_PAGAR)
+  
+  weddingId     String
+  wedding       Wedding        @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Deposit {
+  id        String   @id @default(cuid())
+  description String
+  amount    Float
+  paidBy    TaskResponsible
+  date      DateTime
+  
+  weddingId String
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Guest {
+  id              String      @id @default(cuid())
+  name            String
+  companions      Int         @default(0)
+  phone           String?
+  contact         String?
+  status          GuestStatus @default(NAO_CONVIDADO)
+  
+  weddingId       String
+  wedding         Wedding     @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum GuestStatus {
+  NAO_CONVIDADO
+  CONVIDADO
+  CONFIRMOU
+  NAO_IRA
+}
+
+model RegistryItem {
+  id          String            @id @default(cuid())
+  name        String
+  category    String
+  estimatedPrice Float?
+  store       String?
+  link        String?
+  status      RegistryStatus    @default(PENDENTE)
+  
+  weddingId   String
+  wedding     Wedding           @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+enum RegistryStatus {
+  PENDENTE
+  COMPRADO
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  type        String
+  title       String
+  description String?
+  link        String?
+  notes       String?
+  
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  title       String?
+  content     String
+  type        NoteType @default(GERAL)
+  
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum NoteType {
+  GERAL
+  DECORACAO
+  MUSICA
+  CARTA
+  VOTOS
+  PLAYLIST
+}
+
