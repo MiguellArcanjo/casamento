@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Layout from '@/components/Layout'
 import { differenceInDays, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Calendar, CheckCircle, DollarSign, Users, AlertCircle, TrendingUp } from 'lucide-react'
+import { Calendar, CheckCircle, DollarSign, Users, AlertCircle, TrendingUp, LucideIcon } from 'lucide-react'
 
 async function getDashboardData(weddingId: string) {
   const [
@@ -220,7 +220,7 @@ function StatCard({
   title: string
   value: string
   progress: number
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: LucideIcon
   color: 'wedding' | 'rose'
   subtitle?: string
 }) {
