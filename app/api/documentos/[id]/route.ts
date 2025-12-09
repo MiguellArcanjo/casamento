@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -12,11 +12,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const data = await request.json()
     const { type, title, description, link, notes } = data
 
     const document = await prisma.document.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!document || document.weddingId !== user.wedding.id) {
@@ -24,7 +25,7 @@ export async function PUT(
     }
 
     const updated = await prisma.document.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         type: type !== undefined ? type : document.type,
         title: title !== undefined ? title : document.title,
@@ -46,7 +47,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -54,8 +55,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const document = await prisma.document.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!document || document.weddingId !== user.wedding.id) {
@@ -63,7 +65,7 @@ export async function DELETE(
     }
 
     await prisma.document.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Documento excluído com sucesso' })

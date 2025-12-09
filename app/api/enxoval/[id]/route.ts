@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -12,11 +12,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const data = await request.json()
     const { name, category, estimatedPrice, store, link, status } = data
 
     const item = await prisma.registryItem.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!item || item.weddingId !== user.wedding.id) {
@@ -24,7 +25,7 @@ export async function PUT(
     }
 
     const updated = await prisma.registryItem.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name: name || item.name,
         category: category || item.category,
@@ -47,7 +48,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -55,8 +56,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const item = await prisma.registryItem.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!item || item.weddingId !== user.wedding.id) {
@@ -64,7 +66,7 @@ export async function DELETE(
     }
 
     await prisma.registryItem.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Item excluído com sucesso' })

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -12,11 +12,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const data = await request.json()
     const { title, content, type } = data
 
     const note = await prisma.note.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!note || note.weddingId !== user.wedding.id) {
@@ -24,7 +25,7 @@ export async function PUT(
     }
 
     const updated = await prisma.note.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title: title !== undefined ? title : note.title,
         content: content !== undefined ? content : note.content,
@@ -44,7 +45,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -52,8 +53,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const note = await prisma.note.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!note || note.weddingId !== user.wedding.id) {
@@ -61,7 +63,7 @@ export async function DELETE(
     }
 
     await prisma.note.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Anotação excluída com sucesso' })

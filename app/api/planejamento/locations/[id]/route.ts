@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -12,11 +12,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const data = await request.json()
     const { name, address, time, mapsLink } = data
 
     const location = await prisma.location.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!location || location.weddingId !== user.wedding.id) {
@@ -24,7 +25,7 @@ export async function PUT(
     }
 
     const updated = await prisma.location.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name: name || location.name,
         address: address || location.address,
@@ -45,7 +46,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -53,8 +54,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const location = await prisma.location.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!location || location.weddingId !== user.wedding.id) {
@@ -62,7 +64,7 @@ export async function DELETE(
     }
 
     await prisma.location.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Local excluído com sucesso' })

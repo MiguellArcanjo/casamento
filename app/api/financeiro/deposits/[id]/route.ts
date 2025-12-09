@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -12,11 +12,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const data = await request.json()
     const { description, amount, paidBy, date } = data
 
     const deposit = await prisma.deposit.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!deposit || deposit.weddingId !== user.wedding.id) {
@@ -24,7 +25,7 @@ export async function PUT(
     }
 
     const updated = await prisma.deposit.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         description: description !== undefined ? description : deposit.description,
         amount: amount !== undefined ? parseFloat(amount) : deposit.amount,
@@ -45,7 +46,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -53,8 +54,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const deposit = await prisma.deposit.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!deposit || deposit.weddingId !== user.wedding.id) {
@@ -62,7 +64,7 @@ export async function DELETE(
     }
 
     await prisma.deposit.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Depósito excluído com sucesso' })

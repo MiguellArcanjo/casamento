@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -12,6 +12,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { id } = await params
     const data = await request.json()
     const {
       coupleName,
@@ -25,7 +26,7 @@ export async function PUT(
     } = data
 
     const wedding = await prisma.wedding.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!wedding || wedding.userId !== user.id) {
@@ -33,7 +34,7 @@ export async function PUT(
     }
 
     const updated = await prisma.wedding.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         coupleName: coupleName !== undefined ? coupleName : wedding.coupleName,
         weddingDate: weddingDate !== undefined ? new Date(weddingDate) : wedding.weddingDate,
