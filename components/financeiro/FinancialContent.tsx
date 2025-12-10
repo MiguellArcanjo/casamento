@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
+import { Plus, DollarSign, TrendingUp, TrendingDown, Target } from 'lucide-react'
 import ExpenseForm from './ExpenseForm'
 import DepositForm from './DepositForm'
 import ExpenseList from './ExpenseList'
 import DepositList from './DepositList'
 import FinancialSummary from './FinancialSummary'
+import BudgetForm from './BudgetForm'
+import BudgetList from './BudgetList'
 
 interface Expense {
   id: string
@@ -26,6 +28,13 @@ interface Deposit {
   date: Date
 }
 
+interface Budget {
+  id: string
+  category: string
+  amount: number
+  description: string | null
+}
+
 interface Wedding {
   id: string
   financialGoal: number
@@ -35,23 +44,28 @@ interface Wedding {
 export default function FinancialContent({
   initialExpenses,
   initialDeposits,
+  initialBudgets,
   wedding,
   categories,
   weddingId,
 }: {
   initialExpenses: Expense[]
   initialDeposits: Deposit[]
+  initialBudgets: Budget[]
   wedding: Wedding | null
   categories: string[]
   weddingId: string
 }) {
   const [expenses, setExpenses] = useState(initialExpenses)
   const [deposits, setDeposits] = useState(initialDeposits)
-  const [activeTab, setActiveTab] = useState<'expenses' | 'deposits' | 'summary'>('summary')
+  const [budgets, setBudgets] = useState(initialBudgets)
+  const [activeTab, setActiveTab] = useState<'expenses' | 'deposits' | 'budgets' | 'summary'>('summary')
   const [showExpenseForm, setShowExpenseForm] = useState(false)
   const [showDepositForm, setShowDepositForm] = useState(false)
+  const [showBudgetForm, setShowBudgetForm] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [editingDeposit, setEditingDeposit] = useState<Deposit | null>(null)
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
 
   const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0)
   const financialGoal = wedding?.financialGoal || 0
@@ -125,14 +139,44 @@ export default function FinancialContent({
     }
   }
 
+  const handleBudgetAdd = async (data: any) => {
+    const res = await fetch('/api/financeiro/budgets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, weddingId }),
+    })
+
+    if (res.ok) {
+      const budget = await res.json()
+      const existingIndex = budgets.findIndex((b) => b.category === budget.category)
+      if (existingIndex >= 0) {
+        setBudgets(budgets.map((b, i) => (i === existingIndex ? budget : b)))
+      } else {
+        setBudgets([...budgets, budget].sort((a, b) => a.category.localeCompare(b.category)))
+      }
+      setShowBudgetForm(false)
+      setEditingBudget(null)
+    }
+  }
+
+  const handleDeleteBudget = async (id: string) => {
+    const res = await fetch(`/api/financeiro/budgets/${id}`, {
+      method: 'DELETE',
+    })
+
+    if (res.ok) {
+      setBudgets(budgets.filter((b) => b.id !== id))
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Tabs */}
       <div className="bg-white rounded-xl shadow-md p-2">
-        <div className="flex space-x-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <button
             onClick={() => setActiveTab('summary')}
-            className={`flex-1 px-4 py-2 rounded-lg font-medium touch-target ${
+            className={`px-4 py-2 rounded-lg font-medium touch-target text-sm ${
               activeTab === 'summary'
                 ? 'bg-wedding-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -141,8 +185,18 @@ export default function FinancialContent({
             Resumo
           </button>
           <button
+            onClick={() => setActiveTab('budgets')}
+            className={`px-4 py-2 rounded-lg font-medium touch-target text-sm ${
+              activeTab === 'budgets'
+                ? 'bg-wedding-600 text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Orçamentos
+          </button>
+          <button
             onClick={() => setActiveTab('expenses')}
-            className={`flex-1 px-4 py-2 rounded-lg font-medium touch-target ${
+            className={`px-4 py-2 rounded-lg font-medium touch-target text-sm ${
               activeTab === 'expenses'
                 ? 'bg-wedding-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -152,7 +206,7 @@ export default function FinancialContent({
           </button>
           <button
             onClick={() => setActiveTab('deposits')}
-            className={`flex-1 px-4 py-2 rounded-lg font-medium touch-target ${
+            className={`px-4 py-2 rounded-lg font-medium touch-target text-sm ${
               activeTab === 'deposits'
                 ? 'bg-wedding-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -168,9 +222,36 @@ export default function FinancialContent({
         <FinancialSummary
           expenses={expenses}
           deposits={deposits}
+          budgets={budgets}
           financialGoal={financialGoal}
           currency={wedding?.currency || 'R$'}
         />
+      )}
+
+      {activeTab === 'budgets' && (
+        <div className="space-y-4">
+          <button
+            onClick={() => {
+              setEditingBudget(null)
+              setShowBudgetForm(true)
+            }}
+            className="w-full bg-wedding-600 text-white py-4 rounded-xl font-medium hover:bg-wedding-700 transition-colors flex items-center justify-center space-x-2 touch-target shadow-lg"
+          >
+            <Plus size={20} />
+            <span>Adicionar Orçamento</span>
+          </button>
+          <BudgetList
+            budgets={budgets}
+            expenses={expenses}
+            categories={categories}
+            currency={wedding?.currency || 'R$'}
+            onEdit={(budget) => {
+              setEditingBudget(budget)
+              setShowBudgetForm(true)
+            }}
+            onDelete={handleDeleteBudget}
+          />
+        </div>
       )}
 
       {activeTab === 'expenses' && (
@@ -251,7 +332,26 @@ export default function FinancialContent({
           </div>
         </div>
       )}
+
+      {showBudgetForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <BudgetForm
+              categories={categories}
+              existingBudgets={budgets}
+              initialData={editingBudget}
+              onSubmit={handleBudgetAdd}
+              onCancel={() => {
+                setShowBudgetForm(false)
+                setEditingBudget(null)
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
+
 

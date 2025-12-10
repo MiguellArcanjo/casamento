@@ -47,6 +47,7 @@ model Wedding {
   tasks           Task[]
   expenses        Expense[]
   deposits        Deposit[]
+  budgets         Budget[]
   guests          Guest[]
   registryItems   RegistryItem[]
   documents       Document[]
@@ -167,6 +168,21 @@ model Deposit {
   updatedAt DateTime @updatedAt
 }
 
+model Budget {
+  id          String   @id @default(cuid())
+  category    String
+  amount      Float
+  description String?
+  
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([weddingId, category])
+}
+
 model Guest {
   id              String      @id @default(cuid())
   name            String
@@ -174,12 +190,20 @@ model Guest {
   phone           String?
   contact         String?
   status          GuestStatus @default(NAO_CONVIDADO)
+  family          String?
+  isGodparent     Boolean     @default(false)
+  godparentType   GodparentType?
   
   weddingId       String
   wedding         Wedding     @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+enum GodparentType {
+  PADRINHO
+  MADRINHA
 }
 
 enum GuestStatus {
@@ -246,4 +270,6 @@ enum NoteType {
   VOTOS
   PLAYLIST
 }
+
+
 

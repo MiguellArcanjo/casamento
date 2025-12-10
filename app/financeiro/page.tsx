@@ -5,13 +5,14 @@ import Layout from '@/components/Layout'
 import FinancialContent from '@/components/financeiro/FinancialContent'
 
 async function getFinancialData(weddingId: string) {
-  const [expenses, deposits, wedding] = await Promise.all([
+  const [expenses, deposits, budgets, wedding] = await Promise.all([
     prisma.expense.findMany({ where: { weddingId } }),
     prisma.deposit.findMany({ where: { weddingId }, orderBy: { date: 'desc' } }),
+    prisma.budget.findMany({ where: { weddingId }, orderBy: { category: 'asc' } }),
     prisma.wedding.findUnique({ where: { id: weddingId } }),
   ])
 
-  return { expenses, deposits, wedding }
+  return { expenses, deposits, budgets, wedding }
 }
 
 const expenseCategories = [
@@ -35,7 +36,7 @@ export default async function FinanceiroPage() {
     redirect('/login')
   }
 
-  const { expenses, deposits, wedding } = await getFinancialData(user.wedding.id)
+  const { expenses, deposits, budgets, wedding } = await getFinancialData(user.wedding.id)
 
   return (
     <Layout>
@@ -47,6 +48,7 @@ export default async function FinanceiroPage() {
         <FinancialContent
           initialExpenses={expenses}
           initialDeposits={deposits}
+          initialBudgets={budgets}
           wedding={wedding}
           categories={expenseCategories}
           weddingId={user.wedding.id}
@@ -55,4 +57,6 @@ export default async function FinanceiroPage() {
     </Layout>
   )
 }
+
+
 

@@ -2,64 +2,79 @@
 
 import { useState } from 'react'
 
-interface Deposit {
+interface Budget {
   id: string
-  description: string
+  category: string
   amount: number
-  paidBy: 'NOIVO' | 'NOIVA' | 'AMBOS'
-  date: Date
+  description: string | null
 }
 
-export default function DepositForm({
+export default function BudgetForm({
+  categories,
+  existingBudgets,
   initialData,
   onSubmit,
   onCancel,
 }: {
-  initialData?: Deposit | null
+  categories: string[]
+  existingBudgets: Budget[]
+  initialData?: Budget | null
   onSubmit: (data: any) => void
   onCancel: () => void
 }) {
   const [formData, setFormData] = useState({
-    description: initialData?.description || '',
+    category: initialData?.category || categories[0] || '',
     amount: initialData?.amount?.toString() || '',
-    paidBy: initialData?.paidBy || 'AMBOS',
-    date: initialData
-      ? new Date(initialData.date).toISOString().split('T')[0]
-      : new Date().toISOString().split('T')[0],
+    description: initialData?.description || '',
   })
+
+  // Filtrar categorias que já têm orçamento (exceto a atual)
+  const availableCategories = categories.filter(
+    (cat) => !existingBudgets.find((b) => b.category === cat) || cat === initialData?.category
+  )
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit({
       ...formData,
       amount: parseFloat(formData.amount) || 0,
-      date: new Date(formData.date),
+      description: formData.description || null,
     })
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="text-xl font-bold text-gray-800 mb-4">
-        {initialData ? 'Editar Depósito' : 'Novo Depósito'}
+        {initialData ? 'Editar Orçamento' : 'Novo Orçamento'}
       </h2>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Descrição *
+          Categoria *
         </label>
-        <input
-          type="text"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        <select
+          value={formData.category}
+          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wedding-500 focus:border-transparent touch-target"
-          placeholder="Ex: Depósito mês 01"
-        />
+          disabled={!!initialData}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wedding-500 focus:border-transparent touch-target disabled:bg-gray-100 disabled:cursor-not-allowed"
+        >
+          {availableCategories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+        {initialData && (
+          <p className="text-xs text-gray-500 mt-1">
+            Não é possível alterar a categoria de um orçamento existente
+          </p>
+        )}
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Valor (R$) *
+          Valor do Orçamento (R$) *
         </label>
         <input
           type="number"
@@ -74,34 +89,14 @@ export default function DepositForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Quem Depositou *
+          Descrição (opcional)
         </label>
-        <select
-          value={formData.paidBy}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              paidBy: e.target.value as 'NOIVO' | 'NOIVA' | 'AMBOS',
-            })
-          }
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wedding-500 focus:border-transparent touch-target"
-        >
-          <option value="NOIVO">Noivo</option>
-          <option value="NOIVA">Noiva</option>
-          <option value="AMBOS">Ambos</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Data *
-        </label>
-        <input
-          type="date"
-          value={formData.date}
-          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-          required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wedding-500 focus:border-transparent touch-target"
+          placeholder="Observações sobre este orçamento..."
         />
       </div>
 
@@ -123,6 +118,4 @@ export default function DepositForm({
     </form>
   )
 }
-
-
 

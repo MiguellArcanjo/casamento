@@ -1,6 +1,6 @@
 'use client'
 
-import { Edit, Trash2, Phone, Mail } from 'lucide-react'
+import { Edit, Trash2, Phone, Mail, Crown } from 'lucide-react'
 
 interface Guest {
   id: string
@@ -9,6 +9,9 @@ interface Guest {
   phone: string | null
   contact: string | null
   status: 'NAO_CONVIDADO' | 'CONVIDADO' | 'CONFIRMOU' | 'NAO_IRA'
+  family: string | null
+  isGodparent: boolean
+  godparentType: 'PADRINHO' | 'MADRINHA' | null
 }
 
 export default function GuestCard({
@@ -34,20 +37,36 @@ export default function GuestCard({
     NAO_IRA: 'bg-rose-100 text-rose-700',
   }
 
+  const godparentLabels = {
+    PADRINHO: '👑 Padrinho',
+    MADRINHA: '👑 Madrinha',
+  }
+
   const totalPeople = 1 + guest.companions
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4">
+    <div className={`bg-white rounded-xl shadow-md p-4 ${guest.isGodparent ? 'border-2 border-wedding-400 bg-wedding-50' : ''}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-2">
+          <div className="flex items-center space-x-2 mb-2 flex-wrap">
             <h3 className="font-bold text-gray-800">{guest.name}</h3>
+            {guest.isGodparent && guest.godparentType && (
+              <span className="px-2 py-1 rounded text-xs font-bold bg-wedding-200 text-wedding-800 flex items-center space-x-1">
+                <Crown size={12} />
+                <span>{godparentLabels[guest.godparentType]}</span>
+              </span>
+            )}
             <span
               className={`px-2 py-1 rounded text-xs font-medium ${statusColors[guest.status]}`}
             >
               {statusLabels[guest.status]}
             </span>
           </div>
+          {guest.family && (
+            <p className="text-xs text-wedding-600 font-medium mb-1">
+              👨‍👩‍👧‍👦 {guest.family}
+            </p>
+          )}
           {guest.companions > 0 && (
             <p className="text-sm text-gray-600 mb-2">
               {guest.companions} {guest.companions === 1 ? 'acompanhante' : 'acompanhantes'} (
@@ -87,4 +106,6 @@ export default function GuestCard({
     </div>
   )
 }
+
+
 

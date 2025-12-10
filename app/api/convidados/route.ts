@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const { name, companions, phone, contact, status, weddingId } = data
+    const { name, companions, phone, contact, status, family, isGodparent, godparentType, weddingId } = data
 
     if (!name) {
       return NextResponse.json(
@@ -26,6 +26,9 @@ export async function POST(request: Request) {
         phone: phone || null,
         contact: contact || null,
         status: status || 'NAO_CONVIDADO',
+        family: family || null,
+        isGodparent: isGodparent || false,
+        godparentType: isGodparent && godparentType ? godparentType : null,
         weddingId,
       },
     })
@@ -61,4 +64,6 @@ export async function GET(request: Request) {
     )
   }
 }
+
+
 

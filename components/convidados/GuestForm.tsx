@@ -9,6 +9,9 @@ interface Guest {
   phone: string | null
   contact: string | null
   status: 'NAO_CONVIDADO' | 'CONVIDADO' | 'CONFIRMOU' | 'NAO_IRA'
+  family: string | null
+  isGodparent: boolean
+  godparentType: 'PADRINHO' | 'MADRINHA' | null
 }
 
 export default function GuestForm({
@@ -26,6 +29,9 @@ export default function GuestForm({
     phone: initialData?.phone || '',
     contact: initialData?.contact || '',
     status: initialData?.status || 'NAO_CONVIDADO',
+    family: initialData?.family || '',
+    isGodparent: initialData?.isGodparent || false,
+    godparentType: initialData?.godparentType || 'PADRINHO',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -35,6 +41,9 @@ export default function GuestForm({
       companions: parseInt(formData.companions) || 0,
       phone: formData.phone || null,
       contact: formData.contact || null,
+      family: formData.family || null,
+      isGodparent: formData.isGodparent,
+      godparentType: formData.isGodparent ? formData.godparentType : null,
     })
   }
 
@@ -56,6 +65,22 @@ export default function GuestForm({
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wedding-500 focus:border-transparent touch-target"
           placeholder="Nome do convidado"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Família (para agrupar)
+        </label>
+        <input
+          type="text"
+          value={formData.family}
+          onChange={(e) => setFormData({ ...formData, family: e.target.value })}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wedding-500 focus:border-transparent touch-target"
+          placeholder="Ex: Família Silva, Família Santos..."
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Convidados com o mesmo nome de família serão agrupados
+        </p>
       </div>
 
       <div>
@@ -119,6 +144,41 @@ export default function GuestForm({
         </select>
       </div>
 
+      <div className="border-t pt-4">
+        <div className="flex items-center space-x-3 mb-3">
+          <input
+            type="checkbox"
+            id="isGodparent"
+            checked={formData.isGodparent}
+            onChange={(e) => setFormData({ ...formData, isGodparent: e.target.checked })}
+            className="w-5 h-5 text-wedding-600 border-gray-300 rounded focus:ring-wedding-500 touch-target"
+          />
+          <label htmlFor="isGodparent" className="text-sm font-medium text-gray-700">
+            É Padrinho/Madrinha
+          </label>
+        </div>
+        {formData.isGodparent && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo *
+            </label>
+            <select
+              value={formData.godparentType}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  godparentType: e.target.value as 'PADRINHO' | 'MADRINHA',
+                })
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wedding-500 focus:border-transparent touch-target"
+            >
+              <option value="PADRINHO">Padrinho</option>
+              <option value="MADRINHA">Madrinha</option>
+            </select>
+          </div>
+        )}
+      </div>
+
       <div className="flex space-x-3 pt-4">
         <button
           type="button"
@@ -137,4 +197,6 @@ export default function GuestForm({
     </form>
   )
 }
+
+
 

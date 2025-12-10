@@ -14,7 +14,7 @@ export async function PUT(
 
     const { id } = await params
     const data = await request.json()
-    const { name, companions, phone, contact, status } = data
+    const { name, companions, phone, contact, status, family, isGodparent, godparentType } = data
 
     const guest = await prisma.guest.findUnique({
       where: { id },
@@ -32,6 +32,11 @@ export async function PUT(
         phone: phone !== undefined ? phone : guest.phone,
         contact: contact !== undefined ? contact : guest.contact,
         status: status !== undefined ? status : guest.status,
+        family: family !== undefined ? family : guest.family,
+        isGodparent: isGodparent !== undefined ? isGodparent : guest.isGodparent,
+        godparentType: isGodparent !== undefined 
+          ? (isGodparent && godparentType ? godparentType : null)
+          : guest.godparentType,
       },
     })
 
