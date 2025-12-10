@@ -26,6 +26,7 @@ const expenseCategories = [
   'Viagem',
   'Flores',
   'Convites',
+  'Local',
   'Outros',
 ]
 
