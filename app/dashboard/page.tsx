@@ -1,6 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import Layout from '@/components/Layout'
 import CountdownTimer from '@/components/CountdownTimer'
 import { differenceInDays, format } from 'date-fns'
@@ -109,13 +110,14 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
           <StatCard
             title="Tarefas"
             value={`${data.completedTasks}/${data.totalTasks}`}
             progress={data.taskProgress}
             icon={CheckCircle}
             color="wedding"
+            href="/tarefas"
           />
           <StatCard
             title="Financeiro"
@@ -124,6 +126,7 @@ export default async function DashboardPage() {
             icon={DollarSign}
             color="rose"
             subtitle={`Meta: ${data.wedding?.currency || 'R$'} ${data.financialGoal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            href="/financeiro"
           />
           <StatCard
             title="Convidados"
@@ -131,6 +134,7 @@ export default async function DashboardPage() {
             progress={data.totalGuests > 0 ? (data.confirmedGuests / data.totalGuests) * 100 : 0}
             icon={Users}
             color="wedding"
+            href="/convidados"
           />
           <StatCard
             title="Enxoval"
@@ -138,6 +142,7 @@ export default async function DashboardPage() {
             progress={data.registryProgress}
             icon={TrendingUp}
             color="rose"
+            href="/enxoval"
           />
         </div>
 
@@ -211,6 +216,7 @@ function StatCard({
   icon: Icon,
   color,
   subtitle,
+  href,
 }: {
   title: string
   value: string
@@ -218,19 +224,23 @@ function StatCard({
   icon: LucideIcon
   color: 'wedding' | 'rose'
   subtitle?: string
+  href?: string
 }) {
-  return (
-    <div className="bg-white rounded-xl shadow-md p-6">
+  const iconColorClass = color === 'wedding' ? 'text-wedding-600' : 'text-rose-600'
+  const progressColorClass = color === 'wedding' ? 'bg-wedding-600' : 'bg-rose-600'
+  
+  const CardContent = (
+    <div className="bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow touch-target h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-600">{title}</h3>
-        <Icon size={20} className={`text-${color}-600`} />
+        <Icon size={20} className={iconColorClass} />
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 flex-1 flex flex-col">
         <p className="text-2xl font-bold text-gray-800">{value}</p>
         {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-2 mt-auto">
           <div
-            className={`bg-${color}-600 h-2 rounded-full transition-all`}
+            className={`${progressColorClass} h-2 rounded-full transition-all`}
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
@@ -238,5 +248,15 @@ function StatCard({
       </div>
     </div>
   )
+
+  if (href) {
+    return (
+      <Link href={href} className="block h-full">
+        {CardContent}
+      </Link>
+    )
+  }
+
+  return CardContent
 }
 

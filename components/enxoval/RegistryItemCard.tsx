@@ -38,6 +38,14 @@ export default function RegistryItemCard({
     setShowDeleteConfirm(false)
   }
 
+  const handleToggleStatus = () => {
+    const newStatus = item.status === 'COMPRADO' ? 'PENDENTE' : 'COMPRADO'
+    onUpdate(item.id, {
+      ...item,
+      status: newStatus,
+    })
+  }
+
   return (
     <>
       <div
@@ -50,11 +58,17 @@ export default function RegistryItemCard({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              {item.status === 'COMPRADO' ? (
-                <CheckCircle2 size={20} className="text-green-600" />
-              ) : (
-                <Circle size={20} className="text-gray-400" />
-              )}
+              <button
+                onClick={handleToggleStatus}
+                className="touch-target focus:outline-none"
+                aria-label={item.status === 'COMPRADO' ? 'Marcar como pendente' : 'Marcar como comprado'}
+              >
+                {item.status === 'COMPRADO' ? (
+                  <CheckCircle2 size={20} className="text-green-600 cursor-pointer hover:text-green-700" />
+                ) : (
+                  <Circle size={20} className="text-gray-400 cursor-pointer hover:text-gray-600" />
+                )}
+              </button>
               <h3 className="font-bold text-gray-800">{item.name}</h3>
             </div>
             <p className="text-sm text-gray-600 mb-2">
